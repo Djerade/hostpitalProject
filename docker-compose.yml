@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  mongo1:
+    image: mongo:6.0
+    container_name: mongo1
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo_net
+    volumes:
+      - mongo1_data:/data/db
+
+  mongo2:
+    image: mongo:6.0
+    container_name: mongo2
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - mongo_net
+    volumes:
+      - mongo2_data:/data/db
+
+  mongo3:
+    image: mongo:6.0
+    container_name: mongo3
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - mongo_net
+    volumes:
+      - mongo3_data:/data/db
+
+  mongo-setup:
+    image: mongo:6.0
+    container_name: mongo-setup
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    networks:
+      - mongo_net
+    command: >
+      bash -c "
+      sleep 10 &&
+      mongosh --host mongo1:27017 --eval '
+      rs.initiate({
+        _id: \"rs0\",
+        members: [
+          { _id: 0, host: \"mongo1:27017\" },
+          { _id: 1, host: \"mongo2:27017\" },
+          { _id: 2, host: \"mongo3:27017\" }
+        ]
+      })'
+      "
+
+  app:
+    build: .
+    container_name: hopital_app
+    depends_on:
+      - mongo1
+    environment:
+      - MONGO_URI=mongodb://mongo1:27017,mongo2:27017,mongo3:27017/hopital?replicaSet=rs0
+    networks:
+      - mongo_net
+    volumes:
+      - .:/app
+    command: ["python", "app/main.py"]
+
+networks:
+  mongo_net:
+
+volumes:
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:
