@@ -1,24 +1,23 @@
-from flask import Flask, Response
-from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
-from app.db import db
+from prometheus_client import start_http_server, Gauge
+import time
+from db import get_database
 
-app = Flask(__name__)
+# Connexion à la base MongoDB
+db = get_database()
 
-# Définition des métriques
-total_patients = Gauge('total_patients', 'Nombre total de patients', ['service'])
-consultations_counter = Counter('consultations_total', 'Nombre total de consultations', ['service'])
+# Définition d'une métrique Prometheus avec un label "service"
+patients_total = Gauge('patients_total', 'Nombre total de documents par service', ['service'])
 
-def collect_metrics():
-    for service in db.list_collection_names():
-        collection = db[service]
-        count = collection.count_documents({})
-        total_patients.labels(service=service).set(count)
-        consultations_counter.labels(service=service).inc(count)
+def update_metrics():
+    services = db.list_collection_names()
+    for service in services:
+        count = db[service].count_documents({})
+        patients_total.labels(service=service).set(count)
+        print(f"Service {service} → {count} documents")
 
-@app.route('/metrics')
-def metrics():
-    collect_metrics()
-    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+if __name__ == '__main__':
+    print("🎯 Démarrage du serveur de métriques Prometheus sur le port 8000...")
+    start_http_server(8000)  # Expose les métriques sur http://localhost:8000/metrics
+    while True:
+        update_metrics()
+        time.sleep(5)  # Rafraîchit toutes les 10 secondes

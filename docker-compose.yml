@@ -51,6 +51,8 @@ services:
       - mongo_net
     volumes:
       - grafana_data:/var/lib/grafana
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-mongodb-datasource
 
   mongo-express:
     image: mongo-express
@@ -84,6 +86,17 @@ services:
             ]
           })'
       "
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    container_name: mongodb_exporter
+    environment:
+      - MONGODB_URI=mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0
+    ports:
+      - "9216:9216"
+    networks:
+      - mongo_net
+
   app:
     build: .
     container_name: hopital_app
@@ -96,9 +109,7 @@ services:
       - mongo_net
     volumes:
       - .:/app
-    # command: ["python", "app/main.py"]
     command: ["python3", "app/main.py", "app/generate_data.py"]
-    # command: ["python3", "dashboard.py"]
 
 networks:
   mongo_net:
