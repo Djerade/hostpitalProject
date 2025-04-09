@@ -1,9 +1,11 @@
 from flask import Flask, jsonify, request
+from generate_data import generate_all_services
 from db import db
 from bson import ObjectId
 
 app = Flask(__name__)
 
+generate_all_services()
 # Convertisseur pour les objets BSON ObjectId
 def serialize_doc(doc):
     return {**doc, "_id": str(doc["_id"])}

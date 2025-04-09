@@ -1,9 +1,12 @@
+from generate_data import generate_all_services
 from prometheus_client import start_http_server, Gauge
 import time
 from db import get_database
 
 # Connexion à la base MongoDB
 db = get_database()
+
+generate_all_services()
 
 # Définition d'une métrique Prometheus avec un label "service"
 patients_total = Gauge('patients_total', 'Nombre total de documents par service', ['service'])

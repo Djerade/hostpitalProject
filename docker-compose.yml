@@ -109,7 +109,8 @@ services:
       - mongo_net
     volumes:
       - .:/app
-    command: ["python3", "app/main.py", "app/generate_data.py"]
+    # command: ["python3", "app/main.py", "app/generate_data.py"]
+    command: sh -c "python3 app/main.py && python3 app/generate_data.py"
 
 networks:
   mongo_net:

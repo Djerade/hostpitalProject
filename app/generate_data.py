@@ -11,6 +11,7 @@ def generate_data(service, count=100):
     for _ in range(count):
         data = {
             "patient_id": faker.uuid4(),
+            
             "date": datetime.combine(faker.date_between(start_date="-2y", end_date="today"), datetime.min.time()),
             "diagnostic": faker.sentence(),
             "soin_prescrit": [faker.word() for _ in range(3)],
@@ -23,7 +24,14 @@ def generate_data(service, count=100):
         collection.insert_one(data)
 
 
-# Générer des données pour chaque service
-services = ["medecine_generale", "radiologie", "chirurgie", "neurologie"]
-for service in services:
-    generate_data(service)
+
+
+
+
+def generate_all_services():
+    services = ["cardiologie", "orthopedie", "neurologie", "dermatologie", "pediatrie"]
+    for service in services:
+        generate_data(service, count=100)  
+        
+    print("✅ Données générées avec succès !")
+   
