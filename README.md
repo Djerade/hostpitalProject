@@ -1,4 +1,3 @@
-Parfait ! Voici une version du **README.md** que tu peux directement utiliser pour ton projet GitHub ou GitLab. Je l’ai adapté à partir de ta documentation, avec un focus sur la présentation rapide et l’exécution du projet.
 
 ---
 
@@ -98,10 +97,8 @@ Projet de visualisation et d’analyse des données médicales de l’hôpital *
 ## 👨‍💼 Auteur
 
 **Djeradé Golbé Parfait**  
-Consultant Data Analyst — Projet réalisé pour l'hôpital Donanam
+Projet réalisé pour l'hôpital Donanam
 
 ---
 
 ```
-
-Souhaites-tu aussi que je te génère un fichier `README.md` prêt à télécharger ou à coller dans ton projet ?
