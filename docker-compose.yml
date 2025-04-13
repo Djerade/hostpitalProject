@@ -114,6 +114,20 @@ services:
     ports:
       - "5000:5000"
 
+  streamlit_dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: streamlit_app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - mongo1
+    networks:
+      - mongo_net
+    environment:
+      - MONGO_URI=mongodb://mongo1:27017,mongo2:27017,mongo3:27017/hopital?replicaSet=rs0
+
 networks:
   mongo_net:
 

@@ -4,3 +4,6 @@ faker
 prometheus_client
 flask
 flask-cors
+streamlit
+pymongo
+matplotlib
