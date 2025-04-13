@@ -7,5 +7,4 @@ db = client['hopital']
 
 print("✅ Connexion à la base de données MongoDB réussie !")
 def get_database():
-    
     return db
