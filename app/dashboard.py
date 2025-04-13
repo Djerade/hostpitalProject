@@ -1,12 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import plotly.express as px
-# from pymongo import MongoClient
+from pymongo import MongoClient
 from db import get_database
 
-# Connexion MongoDB
+# --- Connexion à la base ---
 database = get_database()
 
 services = [
@@ -46,49 +45,48 @@ def get_statistics(year):
         })
     return pd.DataFrame(result)
 
-# --- Interface Streamlit ---
-st.set_page_config(
-    page_title="📊 Dashboard Statistiques Hôpital",
-    layout="wide"
-)
+# --- Configuration Streamlit ---
+st.set_page_config(page_title="Statistiques Hôpital", layout="wide")
+st.title("📊 Tableau de bord des statistiques hospitalières")
 
-st.title("📈 Statistiques des Services Hospitaliers")
-
-year = st.selectbox("Sélectionnez une année :", ["2025", "2026", "2027", "2028"])
+# --- Sélection année ---
+year = st.selectbox("📅 Sélectionnez une année :", ["2025", "2026", "2027", "2028"])
 df = get_statistics(year)
 
-st.subheader(f"📅 Données pour l'année {year}")
+# --- Métriques rapides ---
+total_patients = df["Nombre de patients"].sum()
+moy_age = df["Âge moyen"].mean()
+moy_duree = df["Durée moy. traitement"].mean()
+
+col1, col2, col3 = st.columns(3)
+col1.metric("👥 Total patients", total_patients)
+col2.metric("🎂 Âge moyen", f"{moy_age:.1f} ans")
+col3.metric("⏱️ Durée moy. traitement", f"{moy_duree:.1f} jrs")
+
+# --- Tableau brut ---
+st.subheader("📄 Détails des données par service")
 st.dataframe(df, use_container_width=True)
 
-# --- Courbe : Note moyenne par service ---
-st.subheader("📉 Note moyenne par service")
-fig1 = px.line(df, x="Service", y="Note moyenne", markers=True, title="Note moyenne")
-st.plotly_chart(fig1, use_container_width=True)
+# --- Charts ---
+st.subheader("📈 Visualisations des données")
+fig_col1, fig_col2 = st.columns(2)
 
-# --- Histogramme : Âge moyen ---
-st.subheader("📊 Histogramme des âges moyens")
-fig2 = px.histogram(df, x="Âge moyen", nbins=10, title="Distribution des âges moyens")
-st.plotly_chart(fig2, use_container_width=True)
+with fig_col1:
+    fig1 = px.pie(df, names="Service", values="Nombre de patients", title="Répartition par service")
+    st.plotly_chart(fig1, use_container_width=True)
 
-# --- Bar chart : Nombre de patients ---
-st.subheader("🧍 Nombre de patients par service")
-fig3 = px.bar(df, x="Service", y="Nombre de patients", color="Service", title="Nombre de patients")
-st.plotly_chart(fig3, use_container_width=True)
+with fig_col2:
+    fig2 = px.bar(df, x="Service", y="Note moyenne", color="Note moyenne", title="Note moyenne par service")
+    st.plotly_chart(fig2, use_container_width=True)
 
-# --- Camembert : Répartition des patients ---
-st.subheader("🥧 Répartition des patients par service")
-fig4 = px.pie(df, names="Service", values="Nombre de patients", title="Répartition")
-st.plotly_chart(fig4, use_container_width=True)
+st.markdown("---")
 
-# --- Heatmap : Patients vs. Durée traitement ---
-st.subheader("🌡️ Heatmap : Nombre de patients / Durée traitement")
-fig5 = px.density_heatmap(
-    data_frame=df,
-    x="Durée moy. traitement",
-    y="Nombre de patients",
-    nbinsx=20,
-    nbinsy=20,
-    color_continuous_scale="Viridis",
-    title="Heatmap Patients / Durée"
-)
-st.plotly_chart(fig5, use_container_width=True)
+fig_col3, fig_col4 = st.columns(2)
+
+with fig_col3:
+    fig3 = px.line(df, x="Service", y="Âge moyen", markers=True, title="Âge moyen")
+    st.plotly_chart(fig3, use_container_width=True)
+
+with fig_col4:
+    fig4 = px.histogram(df, x="Durée moy. traitement", nbins=10, title="Histogramme Durée traitement")
+    st.plotly_chart(fig4, use_container_width=True)
