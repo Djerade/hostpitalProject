@@ -5,5 +5,7 @@ MONGO_URI = os.getenv("MONGO_URI","mongodb://mongo1:27017,mongo2:27017,mongo3:27
 client = MongoClient(MONGO_URI)
 db = client['hopital']
 
+print("✅ Connexion à la base de données MongoDB réussie !")
 def get_database():
+    
     return db
