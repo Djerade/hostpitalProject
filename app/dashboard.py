@@ -1,41 +1,10 @@
-# from generate_data import generate_all_services
-# from prometheus_client import start_http_server, Gauge
-# import time
-# from db import get_database
-
-# # Connexion à la base MongoDB
-# db = get_database()
-
-# generate_all_services()
-
-# # Définition d'une métrique Prometheus avec un label "service"
-# patients_total = Gauge('patients_total', 'Nombre total de documents par service', ['service'])
-
-# def update_metrics():
-#     services = db.list_collection_names()
-#     for service in services:
-#         count = db[service].count_documents({})
-#         patients_total.labels(service=service).set(count)
-#         print(f"Service {service} → {count} documents")
-
-# if __name__ == '__main__':
-#     print("🎯 Démarrage du serveur de métriques Prometheus sur le port 8000...")
-#     start_http_server(8000)  # Expose les métriques sur http://localhost:8000/metrics
-#     while True:
-#         update_metrics()
-#         time.sleep(5)  # Rafraîchit toutes les 10 secondes
-
-
-
-
-
-
 import streamlit as st
 import pandas as pd
-from pymongo import MongoClient
-from datetime import datetime
+import numpy as np
 import matplotlib.pyplot as plt
-from db import db, get_database
+import plotly.express as px
+# from pymongo import MongoClient
+from db import get_database
 
 # Connexion MongoDB
 database = get_database()
@@ -48,7 +17,6 @@ services = [
 
 def get_statistics(year):
     result = []
-
     for service in services:
         collection = database[service]
         count = collection.count_documents({"date": {"$regex": f"^{year}"}})
@@ -76,24 +44,51 @@ def get_statistics(year):
             "Note moyenne": round(data["avg_note"], 2),
             "Durée moy. traitement": round(data["avg_duree"], 2)
         })
-    
     return pd.DataFrame(result)
 
 # --- Interface Streamlit ---
-st.set_page_config(page_title="Statistiques Hôpital", layout="wide")
-st.title("📊 Tableau de bord des services hospitaliers")
+st.set_page_config(
+    page_title="📊 Dashboard Statistiques Hôpital",
+    layout="wide"
+)
+
+st.title("📈 Statistiques des Services Hospitaliers")
 
 year = st.selectbox("Sélectionnez une année :", ["2025", "2026", "2027", "2028"])
-
 df = get_statistics(year)
 
-st.subheader(f"📅 Statistiques pour l'année {year}")
+st.subheader(f"📅 Données pour l'année {year}")
 st.dataframe(df, use_container_width=True)
 
-# --- Visualisation ---
-st.subheader("📈 Nombre de patients par service")
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.bar(df["Service"], df["Nombre de patients"], color="skyblue")
-ax.set_ylabel("Nombre de patients")
-ax.set_xticklabels(df["Service"], rotation=45, ha="right")
-st.pyplot(fig)
+# --- Courbe : Note moyenne par service ---
+st.subheader("📉 Note moyenne par service")
+fig1 = px.line(df, x="Service", y="Note moyenne", markers=True, title="Note moyenne")
+st.plotly_chart(fig1, use_container_width=True)
+
+# --- Histogramme : Âge moyen ---
+st.subheader("📊 Histogramme des âges moyens")
+fig2 = px.histogram(df, x="Âge moyen", nbins=10, title="Distribution des âges moyens")
+st.plotly_chart(fig2, use_container_width=True)
+
+# --- Bar chart : Nombre de patients ---
+st.subheader("🧍 Nombre de patients par service")
+fig3 = px.bar(df, x="Service", y="Nombre de patients", color="Service", title="Nombre de patients")
+st.plotly_chart(fig3, use_container_width=True)
+
+# --- Camembert : Répartition des patients ---
+st.subheader("🥧 Répartition des patients par service")
+fig4 = px.pie(df, names="Service", values="Nombre de patients", title="Répartition")
+st.plotly_chart(fig4, use_container_width=True)
+
+# --- Heatmap : Patients vs. Durée traitement ---
+st.subheader("🌡️ Heatmap : Nombre de patients / Durée traitement")
+fig5 = px.density_heatmap(
+    data_frame=df,
+    x="Durée moy. traitement",
+    y="Nombre de patients",
+    nbinsx=20,
+    nbinsy=20,
+    color_continuous_scale="Viridis",
+    title="Heatmap Patients / Durée"
+)
+st.plotly_chart(fig5, use_container_width=True)
